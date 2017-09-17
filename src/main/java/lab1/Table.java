@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 
-public class Table<DK extends Comparable, FK extends CharSequence, FF> {
+public class Table<DK extends Comparable, FF> {
 
     @Getter private ArrayList<TableRow> rows;
     @Getter private boolean isSorted;
@@ -23,7 +23,7 @@ public class Table<DK extends Comparable, FK extends CharSequence, FF> {
      * @param foreignAddressKey -
      * @param functionalField   -
      */
-    public void add(DK directAddressKey, FK foreignAddressKey, FF functionalField) {
+    public void add(DK directAddressKey, String foreignAddressKey, FF functionalField) {
         this.rows.add(new TableRow(directAddressKey, foreignAddressKey, functionalField));
         this.isSorted = false;
     }
@@ -44,7 +44,7 @@ public class Table<DK extends Comparable, FK extends CharSequence, FF> {
      * @param foreignAddressKey -
      * @param functionalField   -
      */
-    public void insert(int index, DK directAddressKey, FK foreignAddressKey, FF functionalField) {
+    public void insert(int index, DK directAddressKey, String foreignAddressKey, FF functionalField) {
         this.rows.add(index, new TableRow(directAddressKey, foreignAddressKey, functionalField));
         this.isSorted = false;
     }
@@ -92,12 +92,13 @@ public class Table<DK extends Comparable, FK extends CharSequence, FF> {
      * @param foreignAddressKey -
      * @param functionalField   -
      */
-    public void update(DK directAddressKey, FK foreignAddressKey, FF functionalField) {
+    public void update(DK directAddressKey, String foreignAddressKey, FF functionalField) {
         TableRow oldRow = this.select(directAddressKey);
         if (oldRow != null) {
             oldRow.setForeignAddressKey(foreignAddressKey);
             oldRow.setFunctionalField(functionalField);
         }
+        this.isSorted = false;
     }
 
     /**
@@ -108,21 +109,57 @@ public class Table<DK extends Comparable, FK extends CharSequence, FF> {
         rows.remove(this.select(directAddressKey));
     }
 
+    /**
+     * Search for a string that has the maximum number of characters in sequence equals ignore case with key
+     * @param foreignAddressKey -
+     * @return selected TableRow
+     */
+    public TableRow foreignAddressKeySearch(String foreignAddressKey) {
+        String key = foreignAddressKey.toLowerCase();
+
+        Iterator<TableRow> itr = rows.iterator();
+        TableRow maxRow        = null;
+        int max                = -1;
+        do {
+            TableRow row = itr.next();
+
+            char[] foreignKeyChars = row.getForeignAddressKey().toLowerCase().toCharArray();
+            char[] keyChars        = key.toCharArray();
+
+            int i      = 0;
+
+            boolean flag = true;
+            while (flag & i < foreignKeyChars.length & i < keyChars.length) {
+                flag = foreignKeyChars[i] == keyChars[i];
+                if (flag)
+                    i++;
+            }
+
+            if (i > max) {
+                maxRow = row;
+                max    = i;
+            }
+
+        } while (itr.hasNext());
+
+        return (max > 0) ? maxRow : null;
+    }
+
 
     public class TableRow {
 
         @Getter @Setter private DK directAddressKey;
-        @Getter @Setter private FK foreignAddressKey;
+        @Getter @Setter private String foreignAddressKey;
         @Getter @Setter private FF functionalField;
 
-        public TableRow(DK directAddressKey, FK foreignAddressKey, FF functionalField) {
+        public TableRow(DK directAddressKey, String foreignAddressKey, FF functionalField) {
             this.directAddressKey  = directAddressKey;
             this.foreignAddressKey = foreignAddressKey;
             this.functionalField   = functionalField;
         }
 
         @Override
-        public String toString() {
+        public java.lang.String toString() {
             return "TableRow{" +
                     "directAddressKey=" + directAddressKey +
                     ", foreignAddressKey=" + foreignAddressKey +
@@ -173,7 +210,7 @@ public class Table<DK extends Comparable, FK extends CharSequence, FF> {
     }
 
     @Override
-    public String toString() {
+    public java.lang.String toString() {
         StringBuffer buf = new StringBuffer("Table{\n");
         rows.forEach(row -> buf.append('\t').append(row.toString()).append('\n'));
         return  buf.append("};").toString();

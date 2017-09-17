@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class TableTest {
 
-    private static Table<Long, String, Float> table = new Table<>();
+    private static Table<Long, Float> table = new Table<>();
 
     @Before
     public void setUpTable() {
@@ -14,7 +14,7 @@ public class TableTest {
         table.add((long) 3, "cdefg", 5.7f);
         table.add((long) 1, "abCde", 2.0f);
         table.add((long) 2, "bcdeF", 3.3f);
-        table.add((long) 4, "ggeEf", 6.66f);
+        table.add((long) 4, "ageEf", 6.66f);
     }
 
     @After
@@ -68,5 +68,16 @@ public class TableTest {
         table.delete((long) 6);
         table.delete((long) 2);
         System.out.printf("After delete : %n%s%n", table);
+    }
+
+    @Test
+    public void foreignAddressKeySearch() throws Exception {
+        System.out.println(table);
+        String key = "cdfgltpr";
+        System.out.printf("Search by foreign key(\"%s\") : %s%n", key, table.foreignAddressKeySearch(key));
+        key = "NoSuchKeyInTable";
+        System.out.printf("Search by foreign key(\"%s\") : %s%n", key, table.foreignAddressKeySearch(key));
+        key = "abc";
+        System.out.printf("Search by foreign key(\"%s\") : %s%n", key, table.foreignAddressKeySearch(key));
     }
 }
