@@ -123,21 +123,19 @@ public class Table<DK extends Comparable, FF> {
         do {
             TableRow row = itr.next();
 
-            char[] foreignKeyChars = row.getForeignAddressKey().toLowerCase().toCharArray();
-            char[] keyChars        = key.toCharArray();
+            String nextKey = row.getForeignAddressKey().toLowerCase();
 
-            int i      = 0;
-
-            boolean flag = true;
-            while (flag & i < foreignKeyChars.length & i < keyChars.length) {
-                flag = foreignKeyChars[i] == keyChars[i];
-                if (flag)
-                    i++;
+            int bufMax = -1;
+            for (int i = 0; i < key.length(); i++) {
+                for (int j = i + 1; j <= key.length(); j++) {
+                    if (nextKey.contains(key.substring(i, j)) && bufMax < (j - i))
+                        bufMax = j - i;
+                }
             }
 
-            if (i > max) {
+            if (bufMax > max) {
+                max    = bufMax;
                 maxRow = row;
-                max    = i;
             }
 
         } while (itr.hasNext());
@@ -210,7 +208,7 @@ public class Table<DK extends Comparable, FF> {
     }
 
     @Override
-    public java.lang.String toString() {
+    public String toString() {
         StringBuffer buf = new StringBuffer("Table{\n");
         rows.forEach(row -> buf.append('\t').append(row.toString()).append('\n'));
         return  buf.append("};").toString();

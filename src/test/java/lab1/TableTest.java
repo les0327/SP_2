@@ -10,11 +10,11 @@ public class TableTest {
 
     @Before
     public void setUpTable() {
-        table.add((long) 6, "lKtFm", 9.103f);
-        table.add((long) 3, "cdefg", 5.7f);
+        table.add((long) 6, "eeFglFm", 9.103f);
+        table.add((long) 3, "ckefg", 5.7f);
         table.add((long) 1, "abCde", 2.0f);
         table.add((long) 2, "bcdeF", 3.3f);
-        table.add((long) 4, "ageEf", 6.66f);
+        table.add((long) 4, "ageEfzFF", 6.66f);
     }
 
     @After
@@ -73,11 +73,12 @@ public class TableTest {
     @Test
     public void foreignAddressKeySearch() throws Exception {
         System.out.println(table);
-        String key = "cdfgltpr";
+        String key = "eefz";
         System.out.printf("Search by foreign key(\"%s\") : %s%n", key, table.foreignAddressKeySearch(key));
         key = "NoSuchKeyInTable";
         System.out.printf("Search by foreign key(\"%s\") : %s%n", key, table.foreignAddressKeySearch(key));
         key = "abc";
         System.out.printf("Search by foreign key(\"%s\") : %s%n", key, table.foreignAddressKeySearch(key));
     }
+
 }
