@@ -1,8 +1,7 @@
 package lab2;
 
-import static lab2.Graph.Signal.cfr;
-import static lab2.Graph.Signal.dlm;
-import static lab2.Graph.Signal.ltr;
+import static lab2.Graph.Node;
+import static lab2.Graph.Signal.*;
 
 public class Main {
 
@@ -39,16 +38,16 @@ public class Main {
     }
 
     private static void showPart2() {
-        Graph.Signal[] signals = new Graph.Signal[] {cfr, cfr, dlm, dlm, dlm, dlm, dlm, ltr, cfr, cfr};
+        Graph.Signal[] signals = new Graph.Signal[] {ltr, cfr, cfr, dlm, cfr, dlm, ltr, ltr, ltr, dlm};
 
-        Graph.Node node2 = new Graph.Node("2");
-        Graph.Node node3 = new Graph.Node("3");
-        Graph.Node node4 = new Graph.Node("4");
-        Graph.Node node5 = new Graph.Node("5");
-        Graph.Node node6 = new Graph.Node("6");
-        Graph.Node node7 = new Graph.Node("7");
-        Graph.Node node8 = new Graph.Node("8");
-        Graph.Node node9 = new Graph.Node("9");
+        Node node2 = new Graph.Node("2");
+        Node node3 = new Graph.Node("3");
+        Node node4 = new Graph.Node("4");
+        Node node5 = new Graph.Node("5");
+        Node node6 = new Graph.Node("6");
+        Node node7 = new Graph.Node("7");
+        Node node8 = new Graph.Node("8");
+        Node node9 = new Graph.Node("9");
 
         node2.set(node3, null, null);
         node3.set(node4, node3, cfr);

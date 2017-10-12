@@ -6,7 +6,7 @@ import lombok.Setter;
 class LexemeTree {
 
     @Getter @Setter LexemeNode head;
-     void printLexemeTree() {
+    void printLexemeTree() {
         printLexeme(head);
     }
 
