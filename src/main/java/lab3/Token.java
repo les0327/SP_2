@@ -12,7 +12,6 @@ public class Token {
     @Getter @Setter private String    token;
     @Getter @Setter private TokenType tokenType;
 
-
     @Override
     public String toString() {
         return token + " | " + tokenType.getValue();
