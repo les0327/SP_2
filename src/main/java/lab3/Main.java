@@ -5,22 +5,10 @@ import java.util.List;
 
 public class Main {
 
-    private static String expression = "repeat n:=n-1 until (n=0 or b!=a[n]);"; // expression
+    private static String expression = "repekat n:=ADA-10 until (a:=10 or b!=a[n]);"; // expression
     private static List<Token> tokens = new LinkedList<>();                     // list of recognized tokens
     private static TokenType[] tokenTypes = new TokenType[] {                   // standard tokens
-            new TokenType("repeat", "REPEAT"),
-            new TokenType("until", "UNTIL"),
-            new TokenType("or", "OR"),
-            new TokenType(":=", "ASSIGN"),
-            new TokenType("!=", "NOT_EQUALS"),
-            new TokenType("=", "EQUALS"),
-            new TokenType("-", "SUBTRACTION"),
-            new TokenType("(", "LEFT_ROUND_BRACKET"),
-            new TokenType(")", "RIGHT_ROUND_BRACKET"),
-            new TokenType("[", "LEFT_SQUARE_BRACKET"),
-            new TokenType("]", "RIGHT_SQUARE_BRACKET"),
-            new TokenType(";", "SEMICOLON"),
-            new TokenType(" ", "SEPARATOR")
+
     };
 
     public static void main(String[] args) {
@@ -31,8 +19,11 @@ public class Main {
 
     public static void parseExpression(String expression) {
         String[] parts = expression.split(" ");
-        for (String part : parts)
-            parsePart(part);
+        for (int i = 0; i < parts.length - 1; i++) {
+            parsePart(parts[i]);
+            tokens.add(new Token(" ", tokenTypes[12]));
+        }
+        parsePart(parts[parts.length - 1]);
     }
 
     public static void parsePart(String part) {
