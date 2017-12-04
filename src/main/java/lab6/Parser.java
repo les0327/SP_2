@@ -1,10 +1,18 @@
-package lab5;
+package lab6;
 
-import lab5.ast.expression.*;
-import lab5.ast.statement.*;
-import lab5.exceptions.SyntaxException;
+import lab6.ast.Arrays;
+import lab6.ast.DataType;
+import lab6.ast.NumberValue;
+import lab6.ast.Variables;
+import lab6.ast.expression.*;
+import lab6.ast.statement.AssignmentStatement;
+import lab6.ast.statement.BlockStatement;
+import lab6.ast.statement.Statement;
+import lab6.exceptions.SyntaxException;
 
 import java.util.List;
+
+import static lab6.TokenType.*;
 
 public final class Parser {
 
@@ -32,76 +40,102 @@ public final class Parser {
         return result;
     }
 
-    private Statement statementOrBlock() {
-        if (lookMatch(0, TokenType.BEGIN)) return block();
-        return statement();
-    }
-
     private Statement statement() {
 
-        if (match(TokenType.IF)) {
-            return ifThen();
-        }
-        if (match(TokenType.FOR)) {
-            return forStatement();
+        if (lookMatch(0, VAR) && lookMatch(1, COLON) && lookMatch(2, ARRAY)) {
+            return arrayStatement();
         }
 
+        if (lookMatch(0, VAR) && lookMatch(1, COLON)) {
+            return defineStatement();
+        }
         return assignmentStatement();
     }
 
-    private Statement block() {
-        final BlockStatement block = new BlockStatement();
-        consume(TokenType.BEGIN);
-        while (!match(TokenType.END)) {
-            block.add(statement());
+    private Statement arrayStatement() {
+        String variable = consume(VAR).getText();
+        TokenType tokenType = null;
+        DataType type = null;
+        int start = 0;
+        int end   = 0;
+        consume(COLON);
+        consume(ARRAY);
+        consume(LEFT_SQUARE_BRACKET);
+        start = Integer.parseInt(get(0).getText());
+        consume(LONGINT);
+        consume(POINT_POINT);
+        end   = Integer.parseInt(get(0).getText());
+        consume(LONGINT);
+        consume(RIGHT_SQUARE_BRACKET);
+        consume(OF);
+        switch (get(0).getType()) {
+            case REAL:
+                tokenType = REAL;
+                type = DataType.Real;
+                break;
+            case LONGINT:
+                tokenType = LONGINT;
+                type = DataType.LongInt;
+                break;
+            case BOOLEAN:
+                tokenType = BOOLEAN;
+                type = DataType.Boolean;
+                break;
+            default:
+                throw new SyntaxException("Expected type, get '" + get(0).getText() + "'");
         }
-        match(TokenType.SEMI_COLON);
-        return block;
+        consume(tokenType);
+        consume(SEMI_COLON);
+        return new DefineStatement(variable, new ArrayExpression(Arrays.define(variable, type, start, end), null), true);
+    }
+
+    private Statement defineStatement() {
+        String variable = consume(VAR).getText();
+        TokenType tokenType = null;
+        DataType type = null;
+        consume(COLON);
+
+        switch (get(0).getType()) {
+            case REAL:
+                tokenType = REAL;
+                type = DataType.Real;
+                break;
+            case LONGINT:
+                tokenType = LONGINT;
+                type = DataType.LongInt;
+                break;
+            case BOOLEAN:
+                tokenType = BOOLEAN;
+                type = DataType.Boolean;
+                break;
+            default:
+                throw new SyntaxException("Expected type, get '" + get(0).getText() + "'");
+        }
+        consume(tokenType);
+        consume(SEMI_COLON);
+        return new DefineStatement(variable, new VariableExpression(Variables.define(variable, type)), false);
     }
 
     private Statement assignmentStatement() {
-        if (lookMatch(0, TokenType.VAR) && lookMatch(1, TokenType.ASSIGN)) {
-            final String variable = consume(TokenType.VAR).getText();
-            consume(TokenType.ASSIGN);
-            Statement s = new AssignmentStatement(variable, expression());
-            if (!lookMatch(0, TokenType.END))
-                consume(TokenType.SEMI_COLON);
+        if (lookMatch(0, VAR) && lookMatch(1, LEFT_SQUARE_BRACKET)) {
+            String variable = consume(VAR).getText();
+            consume(LEFT_SQUARE_BRACKET);
+            Expression e = expression();
+            consume(RIGHT_SQUARE_BRACKET);
+            consume(ASSIGN);
+            Statement s = new AssignmentStatement(variable, expression(), true);
+            consume(SEMI_COLON);
+            return s;
+        }
+        if (lookMatch(0, VAR) && lookMatch(1, ASSIGN)) {
+            String variable = consume(VAR).getText();
+            consume(ASSIGN);
+            Statement s = new AssignmentStatement(variable, expression(), false);
+            consume(SEMI_COLON);
+            Variables.assign(variable);
             return s;
         }
         throw new SyntaxException(get(0).getRow(), get(0).getCol(), "Expected next statement, get '" + get(0).getText() + "'");
-    }
-
-
-    private Statement ifThen() {
-        final Expression condition = expression();
-        consume(TokenType.THEN);
-        final Statement ifStatement = statementOrBlock();
-        final Statement elseStatement;
-        if (match(TokenType.ELSE)) {
-            elseStatement = statementOrBlock();
-        } else {
-            elseStatement = null;
-        }
-        return new IfStatement(condition, ifStatement, elseStatement);
-    }
-
-    private Statement forStatement() {
-        Statement assign = null;
-        Expression toValue = null;
-        Statement block  = null;
-        if (lookMatch(0, TokenType.VAR) && lookMatch(1, TokenType.ASSIGN)) {
-            final String variable = consume(TokenType.VAR).getText();
-            consume(TokenType.ASSIGN);
-            assign = new AssignmentStatement(variable, expression());
-        } else
-            throw new SyntaxException(get(0).getRow(), get(0).getCol(), "Expected assign statement, get '" + get(0).getText() + "'");
-
-        consume(TokenType.TO);
-        toValue = expression();
-
-        consume(TokenType.DO);
-        block = statementOrBlock();
-        return new ForStatement(assign, toValue, block);
     }
 
     private Expression expression() {
@@ -147,7 +181,6 @@ public final class Parser {
         return result;
     }
 
-
     private Expression additive() {
         Expression result = unary();
 
@@ -166,7 +199,6 @@ public final class Parser {
         return result;
     }
 
-
     private Expression unary() {
         if (match(TokenType.MINUS)) {
             return new UnaryExpression(UnaryExpression.Operator.NEGATE, primary());
@@ -179,17 +211,31 @@ public final class Parser {
 
     private Expression primary() {
         final Token current = get(0);
-        if (match(TokenType.NUMBER)) {
-            return new ValueExpression(Integer.parseInt(current.getText()));
+        if (match(TokenType.LONGINT)) {
+            return new NumberExpression(new NumberValue(Integer.parseInt(current.getText()), DataType.LongInt));
         }
-        if (match(TokenType.VAR)) {
-            return new VariableExpression(current.getText());
+        if (match(VAR)) {
+            if (match(LEFT_SQUARE_BRACKET)) {
+                Arrays.get(current.getText());
+                Expression e = new ArrayExpression(Arrays.get(current.getText()), expression());
+                consume(RIGHT_SQUARE_BRACKET);
+                return e;
+            }
+            Variables.get(current.getText());
+            return new VariableExpression(Variables.get(current.getText()));
+        }
+        if (match(TRUE)) {
+            return new NumberExpression(new NumberValue(1, DataType.Boolean));
+        }
+        if (match(FALSE)) {
+            return new NumberExpression(new NumberValue(0, DataType.Boolean));
         }
         if (match(TokenType.LEFT_ROUND_BRACKET)) {
             Expression result = expression();
             match(TokenType.RIGHT_ROUND_BRACKET);
             return result;
         }
+
         throw new SyntaxException(current.getRow(), current.getCol(), "Unknown expression: " + current);
     }
 
